@@ -1,0 +1,138 @@
+﻿@model IEnumerable<BigSchool.Models.Course>
+@{
+    ViewBag.Title = "Home Page";
+}
+
+<h2>Home Page</h2>
+
+<table class="table">
+    <tr>
+        <th>
+            @Html.DisplayName("Thời gian")
+        </th>
+        <th>
+            @Html.DisplayName("Địa điểm")
+        </th>
+        <th>
+            @Html.DisplayName("Tên")
+        </th>
+        <th></th>
+    </tr>
+
+    @foreach (var item in Model)
+    {
+    <tr>
+        <td>
+            @Html.DisplayFor(modelItem => item.DateTime)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Place)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Name)
+        </td>
+        <td>
+            @if (item.isLogin)
+            {
+                if (item.isShowFollow)
+                {
+                    <button data-user-id="@item.LecturerId" class="btn btn-default btn-sm js-toggle-follow">Follow</button>
+                }
+                else
+                {
+                    <button data-user-id="@item.LecturerId" class="btn btn-success btn-sm js-toggle-follow">Following</button>
+                }
+
+                if (item.isShowGoing)
+                {
+                    <button data-course-id="@item.Id" class="btn btn-default btn-sm js-toggle-attendance">Go</button>
+                }
+                else
+                {
+                    <button data-course-id="@item.Id" class="btn btn-info btn-sm js-toggle-attendance">Going</button>
+                }
+            }
+
+        </td>
+
+
+    </tr>
+    }
+</table>
+
+
+@section scripts{
+<script>
+    $(document).ready(function () {
+        $(".js-toggle-attendance").click(function (e) {
+            var button = $(e.target);
+            $.post("/api/attendances", { Id: button.attr("data-course-id") })
+                .done(function (result) {
+                    if (result == "cancel") {                       
+                        button
+                            .removeClass("btn-info")
+                            .addClass("btn-default")
+                            .text("Go");
+                    } else {                       
+                        button
+                            .removeClass("btn-default")
+                            .addClass("btn-info")
+                            .text("Going");
+                    }
+                }).fail(function () {
+                    alert("Something fail");
+                });
+        });
+
+        //$(".js-toggle-follow").click(function (e) {
+        //    var button = $(e.target);
+        //    $.post("/api/followings", { FolloweeId: button.attr("data-user-id") })
+        //        .done(function (result) {
+        //            if (result == "cancel") {
+        //                button
+        //                    .removeClass("btn-success")
+        //                    .addClass("btn-default")
+        //                    .text("Follow")                        
+        //            }
+        //            else {
+        //                button
+        //                    .removeClass("btn-default")
+        //                    .addClass("btn-success")
+        //                    .text("Following")
+        //            }                                           
+        //        }).fail(function () {
+        //            alert("Something fail !");
+        //        });
+        //});
+
+
+        $(".js-toggle-follow").click(function (e) {
+            var button = $(e.target);
+            var followee = button.attr("data-user-id");
+            $.post("/api/followings", { FolloweeId: button.attr("data-user-id") })
+                .done(function (result) {
+                    if (result == "cancel") {
+                        $('.js-toggle-follow').each(function (i, obj) {
+                            if ($(this).attr('data-user-id') == followee) {
+                                $(this).removeClass("btn-success")
+                                    .addClass("btn-default")
+                                    .text("Follow");
+                            }
+                        });                      
+                    } else {
+                        $('.js-toggle-follow').each(function (i, obj) {
+                            if ($(this).attr('data-user-id') == followee) {
+                                $(this).removeClass("btn-default")
+                                    .addClass("btn-success")
+                                    .text("Following");
+                            }
+                        });
+                    }
+                }).fail(function () {
+                    alert("Something fail");
+                });
+        });
+
+    });
+</script>
+}
